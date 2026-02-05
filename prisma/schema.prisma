@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Faculty {
+  id       Int       @id @default(autoincrement())
+  name     String
+  subjects Subject[]
+}
+
+model Subject {
+  id        Int       @id @default(autoincrement())
+  name      String
+  facultyId Int
+  faculty   Faculty   @relation(fields: [facultyId], references: [id])
+  sections  Section[]
+}
+
+model Section {
+  id            Int      @id @default(autoincrement())
+  sectionNumber String
+  subjectId     Int
+  subject       Subject   @relation(fields: [subjectId], references: [id])
+  groups        Group[]
+}
+
+model Group {
+  id           Int      @id @default(autoincrement())
+  sectionId    Int
+  section      Section  @relation(fields: [sectionId], references: [id])
+  telegramLink String
+  groupName    String?
+  status       String   @default("pending") // approved, pending, hidden, rejected
+  upvotes      Int      @default(0)
+  downvotes    Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+model Submission {
+  id            Int      @id @default(autoincrement())
+  facultyName   String
+  subjectName   String
+  sectionNumber String
+  telegramLink  String
+  groupName     String?
+  notes         String?
+  status        String   @default("pending") // pending, approved, rejected
+  createdAt     DateTime @default(now())
+}
