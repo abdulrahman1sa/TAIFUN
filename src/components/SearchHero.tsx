@@ -20,20 +20,20 @@ export default function SearchHero() {
 
     // Fetch faculties on mount
     useEffect(() => {
-        async function fetchFaculties() {
+        const fetchFaculties = async () => {
             const res = await fetch('/api/faculties');
             if (res.ok) setFaculties(await res.json());
-        }
+        };
         fetchFaculties();
     }, []);
 
     // Fetch subjects when faculty changes
     useEffect(() => {
         if (selectedFaculty) {
-            async function fetchSubjects() {
+            const fetchSubjects = async () => {
                 const res = await fetch(`/api/subjects?facultyId=${selectedFaculty}`);
                 if (res.ok) setSubjects(await res.json());
-            }
+            };
             fetchSubjects();
             setSelectedSubject('');
             setSelectedSection('');
@@ -46,10 +46,10 @@ export default function SearchHero() {
     // Fetch sections when subject changes
     useEffect(() => {
         if (selectedSubject) {
-            async function fetchSections() {
+            const fetchSections = async () => {
                 const res = await fetch(`/api/sections?subjectId=${selectedSubject}`);
                 if (res.ok) setSections(await res.json());
-            }
+            };
             fetchSections();
             setSelectedSection('');
         } else {
