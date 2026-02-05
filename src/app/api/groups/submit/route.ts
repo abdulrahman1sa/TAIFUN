@@ -1,37 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-// Path to store submissions
-const SUBMISSIONS_FILE = path.join(process.cwd(), 'data', 'submissions.json');
-
-// Ensure data directory exists
-function ensureDataDirectory() {
-    const dataDir = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-    if (!fs.existsSync(SUBMISSIONS_FILE)) {
-        fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify([]));
-    }
-}
-
-// Read submissions from file
-function readSubmissions() {
-    try {
-        ensureDataDirectory();
-        const data = fs.readFileSync(SUBMISSIONS_FILE, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        return [];
-    }
-}
-
-// Write submissions to file
-function writeSubmissions(submissions: any[]) {
-    ensureDataDirectory();
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(submissions, null, 2));
-}
+import { supabaseFetch } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
     try {
@@ -54,75 +22,49 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Validate platform
-        if (platform !== 'telegram' && platform !== 'whatsapp') {
-            return NextResponse.json(
-                { error: 'نوع المجموعة غير صحيح' },
-                { status: 400 }
-            );
-        }
-
-        // Validate link format
-        if (platform === 'telegram' && !groupLink.includes('t.me')) {
-            return NextResponse.json(
-                { error: 'رابط تليجرام غير صحيح' },
-                { status: 400 }
-            );
-        }
-
-        if (platform === 'whatsapp' && !groupLink.includes('chat.whatsapp.com')) {
-            return NextResponse.json(
-                { error: 'رابط واتساب غير صحيح' },
-                { status: 400 }
-            );
-        }
-
-        // Create new submission
+        // Prepare data for Supabase
         const submission = {
-            id: Date.now().toString(),
             platform,
             college,
             subject,
-            sectionNumber,
-            groupLink,
-            groupName,
-            submitterName: submitterName || 'مجهول',
+            section_number: sectionNumber, // supabase uses snake_case usually
+            group_link: groupLink,
+            group_name: groupName,
+            submitter_name: submitterName || 'مجهول',
             status: 'pending',
-            createdAt: new Date().toISOString(),
         };
 
-        // Read existing submissions
-        const submissions = readSubmissions();
-
-        // Add new submission
-        submissions.push(submission);
-
-        // Write back to file
-        writeSubmissions(submissions);
+        // Insert into Supabase
+        const data = await supabaseFetch('submissions', {
+            method: 'POST',
+            body: JSON.stringify(submission),
+            headers: {
+                'Prefer': 'return=representation'
+            }
+        });
 
         return NextResponse.json(
             {
                 success: true,
                 message: 'تم إرسال المجموعة بنجاح! سيتم مراجعتها قريباً',
-                submissionId: submission.id,
+                submissionId: data[0].id,
             },
             { status: 201 }
         );
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error submitting group:', error);
         return NextResponse.json(
-            { error: 'حدث خطأ أثناء إرسال المجموعة' },
+            { error: error.message || 'حدث خطأ أثناء إرسال المجموعة' },
             { status: 500 }
         );
     }
 }
 
-// GET endpoint to retrieve submissions
 export async function GET() {
     try {
-        const submissions = readSubmissions();
-        return NextResponse.json({ submissions }, { status: 200 });
-    } catch (error) {
+        const data = await supabaseFetch('submissions?select=*&order=created_at.desc');
+        return NextResponse.json({ submissions: data }, { status: 200 });
+    } catch (error: any) {
         console.error('Error reading submissions:', error);
         return NextResponse.json(
             { error: 'حدث خطأ أثناء قراءة المجموعات' },
