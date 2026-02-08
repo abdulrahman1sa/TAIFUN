@@ -1,38 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseFetch } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { id } = body;
+        console.log('Approve attempt for ID:', id);
 
         if (!id) {
-            return NextResponse.json(
-                { error: 'معرف المجموعة مطلوب' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'معرف المجموعة مطلوب' }, { status: 400 });
         }
 
-        // Update status to approved in Supabase
-        await supabaseFetch(`submissions?id=eq.${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-                status: 'approved',
-                approved_at: new Date().toISOString()
-            })
+        // Get the submission details
+        console.log('Fetching submission...');
+        const submission = await (prisma as any).groupSubmission.findUnique({
+            where: { id }
         });
+
+        if (!submission) {
+            console.error('Submission not found for ID:', id);
+            return NextResponse.json({ error: 'الطلب غير موجود' }, { status: 404 });
+        }
+
+        console.log('Found submission:', submission.groupName);
+
+        // Check if already approved to prevent duplicates
+        if (submission.status === 'approved') {
+            return NextResponse.json({ error: 'تمت الموافقة على هذا الطلب مسبقاً' }, { status: 400 });
+        }
+
+        // Use a transaction to ensure both operations succeed or fail together
+        console.log('Starting transaction...');
+        try {
+            await (prisma as any).$transaction([
+                // 1. Create the active group
+                (prisma as any).group.create({
+                    data: {
+                        platform: submission.platform,
+                        groupType: submission.groupType,
+                        college: submission.college,
+                        subject: submission.subject,
+                        sectionNumber: submission.sectionNumber,
+                        groupLink: submission.groupLink,
+                        groupName: submission.groupName,
+                        description: submission.description || '',
+                    }
+                }),
+                // 2. Update submission status
+                (prisma as any).groupSubmission.update({
+                    where: { id },
+                    data: {
+                        status: 'approved',
+                        updatedAt: new Date()
+                    }
+                })
+            ]);
+            console.log('Transaction completed successfully');
+        } catch (txError: any) {
+            console.error('TRANSACTION FAILED:', txError);
+            throw txError;
+        }
 
         return NextResponse.json(
             {
                 success: true,
-                message: 'تم قبول المجموعة بنجاح',
+                message: 'تم قبول المجموعة بنجاح ونشرها في الموقع',
             },
             { status: 200 }
         );
     } catch (error: any) {
-        console.error('Error approving submission:', error);
+        console.error('CRITICAL ERROR IN APPROVE ROUTE:', error);
         return NextResponse.json(
-            { error: error.message || 'حدث خطأ أثناء قبول المجموعة' },
+            {
+                error: 'حدث خطأ في السيرفر أثناء الموافقة',
+                message: error.message,
+                details: error.toString()
+            },
             { status: 500 }
         );
     }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseFetch } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
     try {
@@ -9,23 +9,38 @@ export async function GET(request: NextRequest) {
         const section = searchParams.get('section');
         const platform = searchParams.get('platform');
 
-        // Build Supabase query
-        let query = 'submissions?select=*&status=eq.approved';
+        // Build Prisma Filter
+        const where: any = {
+            isActive: true,
+        };
 
-        if (college) query += `&college=eq.${encodeURIComponent(college)}`;
-        if (subject) query += `&subject=eq.${encodeURIComponent(subject)}`;
-        if (section) query += `&section_number=eq.${encodeURIComponent(section)}`;
-        if (platform) query += `&platform=eq.${encodeURIComponent(platform)}`;
+        if (college) where.college = college;
+        if (subject) where.subject = subject;
 
-        query += '&order=created_at.desc';
+        if (section) {
+            // Fetch the specific section OR "general" subject groups (عام)
+            where.sectionNumber = {
+                in: [section, 'عام']
+            };
+        }
 
-        const groups = await supabaseFetch(query);
+        if (platform) where.platform = platform;
+
+        const groups = await (prisma as any).group.findMany({
+            where,
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
 
         return NextResponse.json({ groups }, { status: 200 });
-    } catch (error) {
-        console.error('Error reading groups:', error);
+    } catch (error: any) {
+        console.error('Error fetching approved groups:', error);
         return NextResponse.json(
-            { error: 'حدث خطأ أثناء قراءة المجموعات' },
+            {
+                error: 'حدث خطأ في قاعدة البيانات أثناء البحث عن المجموعات',
+                details: error.message
+            },
             { status: 500 }
         );
     }

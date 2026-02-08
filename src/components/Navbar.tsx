@@ -2,102 +2,59 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useTheme } from './ThemeProvider';
-import { useEffect, useState } from 'react';
 
 export default function Navbar() {
     const pathname = usePathname();
-    const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const toggleTheme = () => {
-        setTheme(theme === 'light' ? 'dark' : 'light');
-    };
 
     const navLinks = [
-        { href: '/', label: 'البداية' },
-        { href: '/groups', label: 'المكتبة' },
-        { href: '/submit', label: 'إضافة_رابط' },
-        { href: '/admin', label: 'الإشراف' },
+        { href: '/', label: 'الرئيسية' },
+        { href: '/submit', label: 'إضافة شعبة' },
+        { href: '/admin', label: 'الإدارة' },
     ];
 
-    if (!mounted) return null;
-
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[100] bg-[var(--background)] border-b-8 border-double border-[var(--foreground)] h-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-                <div className="flex justify-between items-center h-full">
+        <nav className="fixed top-6 left-0 right-0 z-[100] px-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-white doodle-border-sm doodle-shadow-sm px-6 py-4 flex justify-between items-center -rotate-[0.5deg]">
 
-                    {/* Actions & Theme Button - Placed Left in RTL */}
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={toggleTheme}
-                            className="w-14 h-14 bg-[var(--background)] border-4 border-[var(--foreground)] flex items-center justify-center hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-none shadow-[6px_6px_0_0_var(--foreground)] active:translate-y-1 active:shadow-none"
-                            title="تبديل_الوضع"
-                        >
-                            {theme === 'light' ? '🌙' : '☀️'}
-                        </button>
-
+                    {/* Actions */}
+                    <div className="flex items-center gap-4">
                         <Link
-                            href="/login"
-                            className="hidden sm:inline-flex items-center justify-center px-8 py-4 bg-[var(--background)] text-[var(--foreground)] border-4 border-[var(--foreground)] font-black uppercase text-xs tracking-widest hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-none shadow-[6px_6px_0_0_var(--foreground)] active:translate-y-1 active:shadow-none"
+                            href="/submit"
+                            className="bg-[#FF7A00] doodle-border-sm px-4 py-2 font-black text-xs uppercase doodle-clickable rotate-[1deg]"
                         >
-                            تسجيل_الدخول
-                        </Link>
-
-                        <Link
-                            href="/admin"
-                            className="hidden sm:inline-flex items-center justify-center px-8 py-4 bg-[var(--foreground)] text-[var(--background)] border-4 border-[var(--foreground)] font-black uppercase text-xs tracking-widest hover:bg-[var(--background)] hover:text-[var(--foreground)] transition-none shadow-[6px_6px_0_0_var(--foreground)] active:translate-y-1 active:shadow-none"
-                        >
-                            دخول_المسؤول
+                            سجل شعبتك!
                         </Link>
                     </div>
 
-                    {/* Desktop Navigation Links - Middle */}
-                    <div className="hidden lg:flex items-center gap-1">
-                        {navLinks.filter(l => l.href !== '/admin').map((link) => {
+                    {/* Logo */}
+                    <Link href="/" className="flex items-center gap-3 group rotate-[1deg]">
+                        <span className="text-2xl font-black tracking-tighter bg-[#FFD400] px-3 py-1 doodle-border-sm">
+                            دليل_الشعب
+                        </span>
+                    </Link>
+
+                    {/* Links */}
+                    <div className="hidden md:flex items-center gap-6">
+                        {navLinks.map((link) => {
                             const isActive = pathname === link.href;
                             return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
                                     className={`
-                                        px-6 py-2 font-black text-sm uppercase transition-none border-b-4 
+                                        font-black text-sm uppercase transition-all
                                         ${isActive
-                                            ? 'bg-[var(--foreground)] text-[var(--background)] border-[var(--foreground)]'
-                                            : 'text-[var(--foreground)] border-transparent hover:border-[var(--foreground)]'
+                                            ? 'underline decoration-[#FFD400] decoration-4 underline-offset-4'
+                                            : 'hover:rotate-[2deg]'
                                         }
                                     `}
                                 >
-                                    [{link.label}]
+                                    {link.label}
                                 </Link>
                             );
                         })}
                     </div>
-
-                    {/* Logo Section - Placed Right in RTL */}
-                    <Link href="/" className="flex items-center gap-4 group">
-                        <div className="text-right hidden sm:block">
-                            <span className="block text-xl font-black leading-none uppercase tracking-tighter">دليل_الشعب_</span>
-                            <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">SAUDI_ACADEMIC_SYS</span>
-                        </div>
-                        <div className="relative">
-                            <img
-                                src="/pixel-logo.png"
-                                alt="دليل الشعب"
-                                className="h-16 w-auto object-contain pixelated group-hover:-rotate-2 transition-transform"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/pixel-logo.png.svg';
-                                }}
-                            />
-                            <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-600 border border-[var(--foreground)] animate-pulse"></div>
-                        </div>
-                    </Link>
-
                 </div>
             </div>
         </nav>

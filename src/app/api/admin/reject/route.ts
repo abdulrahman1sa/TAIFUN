@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseFetch } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,27 +13,30 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Update status to rejected in Supabase
-        await supabaseFetch(`submissions?id=eq.${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
+        // Update status to rejected in Prisma
+        await (prisma as any).groupSubmission.update({
+            where: { id },
+            data: {
                 status: 'rejected',
-                rejection_reason: reason || 'غير محدد',
-                rejected_at: new Date().toISOString()
-            })
+                reviewNote: reason || 'غير محدد',
+                updatedAt: new Date()
+            }
         });
 
         return NextResponse.json(
             {
                 success: true,
-                message: 'تم رفض المجموعة',
+                message: 'تم رفض المجموعة بنجاح',
             },
             { status: 200 }
         );
     } catch (error: any) {
         console.error('Error rejecting submission:', error);
         return NextResponse.json(
-            { error: error.message || 'حدث خطأ أثناء رفض المجموعة' },
+            {
+                error: 'حدث خطأ في قاعدة البيانات أثناء الرفض',
+                details: error.message
+            },
             { status: 500 }
         );
     }

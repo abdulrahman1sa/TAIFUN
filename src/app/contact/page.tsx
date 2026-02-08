@@ -1,32 +1,33 @@
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { FaTelegramPlane } from 'react-icons/fa';
+'use client';
+
+import { DoodleCard, DoodleButton, DoodleBadge } from '@/components/DoodleComponents';
 
 export default function ContactPage() {
     return (
-        <>
-            <Navbar />
-            <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex items-center justify-center">
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sm:p-16 text-center max-w-lg w-full">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">تواصل معنا</h1>
-                    <p className="text-lg text-gray-500 mb-10">
-                        عندك استفسار أو قروب مو موجود؟ أو واجهت مشكلة بالموقع؟
-                        <br />
-                        إحنا هنا عشان نساعدك.
-                    </p>
+        <div className="pt-32 pb-20 px-4 flex items-center justify-center min-h-[80vh]">
+            <DoodleCard className="max-w-xl w-full p-12 text-center rotate-[1deg]">
+                <DoodleBadge className="mb-6 -rotate-[5deg]">تواصل معنا 📞</DoodleBadge>
+                <h1 className="text-4xl font-black mb-6">عندك استفسار؟</h1>
+                <p className="font-bold text-lg opacity-60 mb-10 leading-relaxed">
+                    حاب تضيف قروب مو موجود؟ أو واجهت مشكلة تقنية؟
+                    <br />
+                    لا تشيل هم، إحنا هنا دايم!
+                </p>
 
+                <div className="space-y-6">
                     <a
                         href="https://t.me/DVVLLP"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-primary-600/30 hover:bg-primary-700 hover:shadow-primary-600/50 transition-all transform hover:-translate-y-1"
+                        className="block"
                     >
-                        <FaTelegramPlane className="h-6 w-6" />
-                        <span>تواصل على تيليجرام</span>
+                        <DoodleButton className="w-full py-5 text-xl" variant="primary">
+                            تواصل عبر تيليجرام ✈️
+                        </DoodleButton>
                     </a>
+                    <p className="text-xs font-black opacity-30 uppercase tracking-widest">عادة نرد خلال ساعات قليلة ✨</p>
                 </div>
-            </main>
-            <Footer />
-        </>
+            </DoodleCard>
+        </div>
     );
 }

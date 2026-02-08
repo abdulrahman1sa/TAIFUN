@@ -3,210 +3,106 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: #FFD400;
+  --color-accent: #FF7A00;
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --card-bg: #ffffff;
-  --accent: #000000;
-  --pixel-shadow: 6px 6px 0px 0px #000000;
-  --pixel-border: 4px solid #000000;
-}
-
-[data-theme='dark'] {
-  --background: #000000;
-  --foreground: #ffffff;
-  --card-bg: #000000;
-  --accent: #ffffff;
-  --pixel-shadow: 6px 6px 0px 0px #ffffff;
-  --pixel-border: 4px solid #ffffff;
+  --background: #FCFBF7;
+  /* Off-white paper color */
+  --foreground: #111111;
+  --primary: #FFD400;
+  --accent: #FF7A00;
+  --border-width: 3.5px;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Changa', 'Courier New', Courier, monospace;
+  font-family: 'Tajawal', sans-serif;
   direction: rtl;
-  transition: background-color 0s, color 0s;
-  position: relative;
   min-height: 100vh;
-}
-
-/* CRT Scanline Effect Overlay */
-body::after {
-  content: " ";
-  display: block;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-  z-index: 1000;
-  background-size: 100% 2.5px, 2px 100%;
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-/* Dither Pattern Background */
-.dither-bg {
-  background-image: radial-gradient(var(--foreground) 1.5px, transparent 1.5px);
-  background-size: 6px 6px;
-  background-position: 0 0;
-  opacity: 0.05;
-}
-
-.pixelated {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: pixelated;
-}
-
-.delay-1 {
-  animation-delay: 0.2s;
-}
-
-.delay-2 {
-  animation-delay: 0.4s;
-}
-
-.delay-3 {
-  animation-delay: 0.6s;
-}
-
-/* Pixel Art Cards */
-.modern-card,
-.pixel-card {
-  background: var(--card-bg);
-  border: var(--pixel-border);
-  box-shadow: var(--pixel-shadow);
-  border-radius: 0 !important;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   position: relative;
+  /* Doodle Background Pattern */
+  background-image:
+    radial-gradient(rgba(17, 17, 17, 0.03) 0.8px, transparent 0.8px),
+    linear-gradient(rgba(17, 17, 17, 0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.01) 1px, transparent 1px);
+  background-size: 24px 24px, 100px 100px, 100px 100px;
+  background-attachment: fixed;
 }
 
-.pixel-card::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
-  border: 2px solid var(--foreground);
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/lined-paper.png");
+  opacity: 0.1;
   pointer-events: none;
-  opacity: 0.15;
+  z-index: -1;
 }
 
-.modern-card:hover,
-.pixel-card:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 12px 12px 0px 0px var(--foreground);
-  border-color: var(--foreground);
+/* Hand-drawn Border Effect */
+.doodle-border {
+  border: var(--border-width) solid var(--foreground);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
 }
 
-/* Blinking Cursor */
-.cursor-blink::after {
-  content: '_';
-  animation: blink 1s step-end infinite;
+.doodle-border-sm {
+  border: 2.5px solid var(--foreground);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
 }
 
-@keyframes blink {
+/* Hard Cartoon Shadow */
+.doodle-shadow {
+  box-shadow: 8px 8px 0px 0px var(--foreground);
+}
 
-  from,
-  to {
-    opacity: 1;
+.doodle-shadow-sm {
+  box-shadow: 4px 4px 0px 0px var(--foreground);
+}
+
+/* Hover Actions */
+.doodle-clickable {
+  transition: all 0.1s ease;
+}
+
+.doodle-clickable:hover {
+  transform: translate(-2px, -2px) rotate(0.5deg);
+  box-shadow: 10px 10px 0px 0px var(--foreground);
+}
+
+.doodle-clickable:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--foreground);
+}
+
+/* Animation for the "Doodle" feel */
+@keyframes float {
+  0% {
+    transform: rotate(-1deg);
   }
 
   50% {
-    opacity: 0;
-  }
-}
-
-/* Animations */
-@keyframes marquee {
-  0% {
-    transform: translateX(100%);
+    transform: rotate(1deg);
   }
 
   100% {
-    transform: translateX(-100%);
+    transform: rotate(-1deg);
   }
 }
 
-.animate-marquee {
-  animation: marquee 40s linear infinite;
+.animate-doodle {
+  animation: float 4s ease-in-out infinite;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Custom Selection */
+::selection {
+  background: var(--primary);
+  color: var(--foreground);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-}
-
-/* Custom Scrollbar - Pixel Style */
-::-webkit-scrollbar {
-  width: 14px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--background);
-  border-left: 4px solid var(--foreground);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--foreground);
-  border: 3px solid var(--background);
-}
-
-/* Saudi/KSA Specific Elements */
-.ksa-badge {
-  background: var(--foreground);
-  color: var(--background);
-  padding: 6px 14px;
-  font-weight: 900;
-  font-size: 11px;
-  text-transform: uppercase;
-  border: 2px solid var(--background);
-  outline: 3px solid var(--foreground);
-  display: inline-flex;
-  gap: 10px;
-  align-items: center;
-  letter-spacing: 0.1em;
-}
-
-/* Scanline Effect */
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: rgba(var(--foreground), 0.1);
-  opacity: 0.1;
-  z-index: 50;
-  pointer-events: none;
-  animation: scan 10s linear infinite;
-}
-
-@keyframes scan {
-  from {
-    top: 0;
-  }
-
-  to {
-    top: 100%;
-  }
+/* RTL Helpers */
+.rtl-flip {
+  transform: scaleX(-1);
 }

@@ -2,25 +2,37 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import FloatingContact from '@/components/FloatingContact';
+import {
+    DoodleCard,
+    DoodleButton,
+    DoodleInput,
+    DoodleSelect,
+    DoodleBadge
+} from '@/components/DoodleComponents';
 
-const colleges = [
-    'كلية الهندسة', 'كلية الطب', 'كلية العلوم', 'كلية الآداب',
-    'كلية التجارة', 'كلية الحقوق', 'كلية الصيدلة', 'كلية طب الأسنان',
-    'كلية علوم الحاسب والمعلومات', 'كلية العلوم الطبية التطبيقية',
-    'كلية التمريض', 'كلية العمارة والتخطيط', 'كلية اللغات والترجمة',
-    'كلية التربية', 'كلية الشريعة', 'كلية الإعلام', 'أخرى (كتابة يدوية)'
+const universities = [
+    'جامعة أم القرى', 'الجامعة الإسلامية', 'جامعة الإمام محمد بن سعود الإسلامية', 'جامعة الملك سعود',
+    'جامعة الملك عبدالعزيز', 'جامعة الملك فهد للبترول والمعادن', 'جامعة الملك فيصل', 'جامعة الملك خالد',
+    'جامعة القصيم', 'جامعة طيبة', 'جامعة الطائف', 'جامعة حائل', 'جامعة جازان', 'جامعة الجوف',
+    'جامعة تبوك', 'جامعة الباحة', 'جامعة نجران', 'جامعة الحدود الشمالية', 'جامعة الأميرة نورة بنت عبدالرحمن',
+    'جامعة الملك سعود بن عبدالعزيز للعلوم الصحية', 'جامعة شقراء', 'جامعة المجمعة', 'جامعة حفر الباطن',
+    'جامعة بيشة', 'جامعة جدة', 'جامعة الملك عبدالله للعلوم والتقنية', 'جامعة الإمام عبدالرحمن بن فيصل',
+    'جامعة الأمير سطام بن عبدالعزيز', 'جامعة الملك سلمان', 'جامعة الجبيل', 'جامعة الفيصل',
+    'جامعة الأمير سلطان', 'جامعة عفت', 'جامعة دار العلوم', 'جامعة المعرفة', 'جامعة رياض العلم',
+    'جامعة المستقبل', 'جامعة اليمامة', 'جامعة الأعمال والتكنولوجيا', 'جامعة عناية', 'جامعة الفارابي',
+    'جامعة الشرق الأوسط', 'جامعة الأصالة', 'جامعة ابن رشد', 'جامعة جدة الأهلية', 'أخرى'
 ];
 
 export default function SubmitPage() {
     const [platform, setPlatform] = useState<'telegram' | 'whatsapp'>('telegram');
+    const [groupType, setGroupType] = useState<'subject' | 'section'>('section');
     const [selectedCollege, setSelectedCollege] = useState('');
     const [customCollege, setCustomCollege] = useState('');
     const [subjectInput, setSubjectInput] = useState('');
     const [sectionNumber, setSectionNumber] = useState('');
     const [groupLink, setGroupLink] = useState('');
     const [groupName, setGroupName] = useState('');
+    const [description, setDescription] = useState('');
     const [submitterName, setSubmitterName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -30,37 +42,39 @@ export default function SubmitPage() {
         setIsSubmitting(true);
         setSubmitStatus('idle');
 
-        const finalCollege = selectedCollege === 'أخرى (كتابة يدوية)' ? customCollege : selectedCollege;
+        const college = selectedCollege === 'أخرى' ? customCollege : selectedCollege;
 
         try {
             const response = await fetch('/api/groups/submit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     platform,
-                    college: finalCollege,
-                    subject: subjectInput,
-                    sectionNumber,
+                    groupType,
+                    college: college,
+                    subject: groupType === 'subject' ? 'عام' : subjectInput,
+                    sectionNumber: groupType === 'subject' ? 'عام' : sectionNumber,
                     groupLink,
                     groupName,
+                    description,
                     submitterName,
                 }),
             });
 
             if (response.ok) {
                 setSubmitStatus('success');
-                // Reset form
-                setSelectedCollege('');
-                setCustomCollege('');
                 setSubjectInput('');
                 setSectionNumber('');
                 setGroupLink('');
                 setGroupName('');
                 setSubmitterName('');
+                setCustomCollege('');
+                setDescription('');
             } else {
+                const errorData = await response.json();
+                console.error('Submission failed:', errorData);
                 setSubmitStatus('error');
+                alert(`فشل الإرسال: ${errorData.error || 'خطأ غير معروف'}`);
             }
         } catch (error) {
             setSubmitStatus('error');
@@ -70,191 +84,180 @@ export default function SubmitPage() {
     };
 
     return (
-        <div className="bg-[var(--background)] min-h-screen pt-24 relative overflow-hidden">
-            <div className="fixed inset-0 dither-bg pointer-events-none opacity-5 z-0"></div>
-            <Navbar />
+        <div className="pt-32 pb-20 px-4">
+            <div className="max-w-4xl mx-auto">
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fade-in relative z-10">
                 {/* Header */}
-                <div className="text-center mb-16 space-y-4">
-                    <div className="inline-block border-4 border-double border-[var(--foreground)] px-8 py-3 mb-4 bg-[var(--background)]">
-                        <h1 className="text-4xl font-black text-[var(--foreground)] tracking-tighter uppercase">
-                            إضافة_مجموعة_جديدة ➕
-                        </h1>
-                    </div>
-                    <p className="text-lg text-[var(--foreground)] font-bold">
-                        <span className="cursor-blink">// جاري_تجهيز_طلب_الإضافة: قيد_المراجعة_</span>
-                    </p>
+                <div className="text-center mb-16 rotate-[1deg]">
+                    <h1 className="text-5xl font-black mb-4 inline-block bg-[#FFD400] px-6 py-2 doodle-border-sm">
+                        إضافة شعبة جديدة ✍️
+                    </h1>
+                    <p className="font-bold opacity-70">ساعد زملاءك وشارك روابط الشعب الموثقة!</p>
                 </div>
 
-                {/* Form Wrapper */}
-                <div className="relative">
-                    <form onSubmit={handleSubmit} className="pixel-card relative bg-[var(--background)] border-4 border-[var(--foreground)] p-8 md:p-12 shadow-[10px_10px_0_0_var(--foreground)] space-y-12">
-                        <div className="absolute top-0 right-0 p-2 bg-[var(--foreground)] text-[var(--background)] font-black text-[10px] uppercase">FORM_ID: #SUB_001</div>
+                {/* Form */}
+                <DoodleCard rotate="-rotate-[0.5deg]">
+                    <form onSubmit={handleSubmit} className="space-y-10 p-2 md:p-6 text-right">
 
-                        {/* Platform Toggle */}
-                        <div className="space-y-6">
-                            <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                &gt; اختر_المنصة (SELECT_PLATFORM):
-                            </label>
-                            <div className="grid grid-cols-2 gap-6 p-1 bg-[var(--foreground)] border-2 border-[var(--foreground)]">
-                                <button
-                                    type="button"
-                                    onClick={() => setPlatform('whatsapp')}
-                                    className={`flex items-center justify-center gap-4 py-4 font-black transition-none uppercase rounded-none ${platform === 'whatsapp'
-                                        ? 'bg-[var(--background)] text-[var(--foreground)]'
-                                        : 'text-[var(--background)] hover:bg-[var(--background)] hover:text-[var(--foreground)] opacity-60'
-                                        }`}
-                                >
-                                    [ واتساب ]
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPlatform('telegram')}
-                                    className={`flex items-center justify-center gap-4 py-4 font-black transition-none uppercase rounded-none ${platform === 'telegram'
-                                        ? 'bg-[var(--background)] text-[var(--foreground)]'
-                                        : 'text-[var(--background)] hover:bg-[var(--background)] hover:text-[var(--foreground)] opacity-60'
-                                        }`}
-                                >
-                                    [ تليجرام ]
-                                </button>
+                        {/* Platform & Type Selector */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <label className="font-black text-sm uppercase block opacity-40">المنصة:</label>
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPlatform('telegram')}
+                                        className={`flex-1 py-4 doodle-border-sm font-black transition-all ${platform === 'telegram' ? 'bg-[#FFD400] shadow-[4px_4px_0_0_black]' : 'bg-white opacity-50'}`}
+                                    >
+                                        تيليجرام ✈️
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPlatform('whatsapp')}
+                                        className={`flex-1 py-4 doodle-border-sm font-black transition-all ${platform === 'whatsapp' ? 'bg-[#FFD400] shadow-[4px_4px_0_0_black]' : 'bg-white opacity-50'}`}
+                                    >
+                                        واتساب 💬
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <label className="font-black text-sm uppercase block opacity-40">نوع المجموعة:</label>
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGroupType('section')}
+                                        className={`flex-1 py-4 doodle-border-sm font-black transition-all ${groupType === 'section' ? 'bg-[#FFD400] shadow-[4px_4px_0_0_black]' : 'bg-white opacity-50'}`}
+                                    >
+                                        قروب شعبة 🔢
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGroupType('subject')}
+                                        className={`flex-1 py-4 doodle-border-sm font-black transition-all ${groupType === 'subject' ? 'bg-[#FFD400] shadow-[4px_4px_0_0_black]' : 'bg-white opacity-50'}`}
+                                    >
+                                        قروب مادة عام 📚
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* College Select */}
-                        <div className="space-y-3">
-                            <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                &gt; اختيار_الكلية (COLLEGE_ID):
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={selectedCollege}
-                                    onChange={(e) => setSelectedCollege(e.target.value)}
-                                    className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-xl appearance-none cursor-pointer rounded-none"
-                                    required
-                                    title="اختر الكلية"
-                                >
-                                    <option value="">[ اختر_من_القائمة ]</option>
-                                    {colleges.map((c) => (
-                                        <option key={c} value={c}>{c}</option>
-                                    ))}
-                                </select>
-                                <div className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none font-bold">▼</div>
+                        {/* College & Subject */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3 rotate-[0.5deg]">
+                                <label className="font-black text-sm uppercase opacity-40">الجامعة</label>
+                                <DoodleSelect value={selectedCollege} onChange={(e) => setSelectedCollege(e.target.value)} required>
+                                    <option value="">اختار جامعتك</option>
+                                    {universities.map(c => <option key={c} value={c}>{c}</option>)}
+                                </DoodleSelect>
                             </div>
 
-                            {selectedCollege === 'أخرى (كتابة يدوية)' && (
-                                <input
-                                    type="text"
-                                    value={customCollege}
-                                    onChange={(e) => setCustomCollege(e.target.value)}
-                                    placeholder="اكتب اسم الكلية هنا..."
-                                    className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-xl rounded-none mt-4 animate-fade-in"
-                                    required
-                                />
+                            {selectedCollege === 'أخرى' && (
+                                <div className="space-y-3 md:col-span-2 animate-bounce rotate-[-1deg]">
+                                    <label className="font-black text-sm uppercase opacity-40">اسم جامعتك الرهيبة</label>
+                                    <DoodleInput
+                                        placeholder="اكتب اسم الجامعة هنا..."
+                                        value={customCollege}
+                                        onChange={(e) => setCustomCollege(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             )}
+                            <div className={`space-y-3 -rotate-[0.5deg] transition-all ${groupType === 'subject' ? 'opacity-30 pointer-events-none' : ''}`}>
+                                <label className="font-black text-sm uppercase opacity-40">رمز المادة</label>
+                                <DoodleInput
+                                    placeholder={groupType === 'subject' ? 'عام' : 'مثلاً: ARAB 101'}
+                                    value={subjectInput}
+                                    onChange={(e) => setSubjectInput(e.target.value)}
+                                    required={groupType === 'section'}
+                                />
+                            </div>
                         </div>
 
-                        {/* Subject Input */}
-                        <div className="space-y-3">
-                            <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                &gt; اسم_أو_رمز_المادة (SUBJECT_NAME):
-                            </label>
-                            <input
-                                type="text"
-                                value={subjectInput}
-                                onChange={(e) => setSubjectInput(e.target.value)}
-                                placeholder="مثال: MATH_101"
-                                className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-xl rounded-none placeholder:[var(--foreground)]/30"
-                                required
-                            />
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div className="space-y-3">
-                                <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                    &gt; رقم_الشعبة (SECTION_NO):
-                                </label>
-                                <input
-                                    type="text"
+                        {/* Group Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className={`space-y-3 -rotate-[1deg] transition-all ${groupType === 'subject' ? 'opacity-30 pointer-events-none' : ''}`}>
+                                <label className="font-black text-sm uppercase opacity-40">رقم الشعبة</label>
+                                <DoodleInput
+                                    placeholder={groupType === 'subject' ? 'غير مطلوب' : 'مثلاً: 123'}
                                     value={sectionNumber}
                                     onChange={(e) => setSectionNumber(e.target.value)}
-                                    placeholder="مثال: 001"
-                                    className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-xl rounded-none placeholder:[var(--foreground)]/30"
-                                    required
+                                    required={groupType === 'section'}
                                 />
                             </div>
-                            <div className="space-y-3">
-                                <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                    &gt; مسمى_المجموعة (LABEL):
-                                </label>
-                                <input
-                                    type="text"
+                            <div className="space-y-3 rotate-[1deg]">
+                                <label className="font-black text-sm uppercase opacity-40">اسم القروب</label>
+                                <DoodleInput
+                                    placeholder="مثلاً: قروب طلاب الفيزياء"
                                     value={groupName}
                                     onChange={(e) => setGroupName(e.target.value)}
-                                    placeholder="مثال: قروب فيزياء 101"
-                                    className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-xl rounded-none placeholder:[var(--foreground)]/30"
                                     required
                                 />
                             </div>
                         </div>
 
-                        {/* Link Input */}
-                        <div className="space-y-3">
-                            <label className="block text-right text-xs font-black uppercase tracking-widest text-[var(--foreground)] opacity-50">
-                                &gt; رابط_الدعوة (INVITE_URL):
-                            </label>
-                            <input
-                                type="url"
-                                value={groupLink}
-                                onChange={(e) => setGroupLink(e.target.value)}
-                                dir="ltr"
-                                placeholder={platform === 'telegram' ? 'https://t.me/...' : 'https://chat.whatsapp.com/...'}
-                                className="w-full px-6 py-5 bg-[var(--background)] border-4 border-[var(--foreground)] focus:shadow-[6px_6px_0_0_var(--foreground)] transition-none outline-none font-bold text-lg text-left rounded-none font-mono placeholder:[var(--foreground)]/20"
-                                required
+                        {/* Description */}
+                        <div className="space-y-3 rotate-[-0.5deg]">
+                            <label className="font-black text-sm uppercase opacity-40">وصف المجموعة (اختياري)</label>
+                            <DoodleInput
+                                placeholder="اكتب تفاصيل إضافية هنا..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                             />
                         </div>
 
-                        {/* Status Messasges */}
+                        {/* Link */}
+                        <div className="space-y-3">
+                            <label className="font-black text-sm uppercase opacity-40">رابط الدعوة</label>
+                            <DoodleInput
+                                type="url"
+                                dir="ltr"
+                                placeholder="https://..."
+                                value={groupLink}
+                                onChange={(e) => setGroupLink(e.target.value)}
+                                required
+                                className="text-left font-mono"
+                            />
+                        </div>
+
+                        {/* Submitter Info */}
+                        <div className="space-y-3 -rotate-[0.5deg]">
+                            <label className="font-black text-sm uppercase opacity-40">اسمك (اختياري)</label>
+                            <DoodleInput
+                                placeholder="من أنت؟"
+                                value={submitterName}
+                                onChange={(e) => setSubmitterName(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Status Messages */}
                         {submitStatus === 'success' && (
-                            <div className="p-8 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-4 border-green-600 font-black text-right animate-fade-in">
-                                &gt; تم التوصيل: تم إرسال المجموعة للمراجعة بنجاح!
-                                <p className="text-xs mt-2 opacity-70">STATUS_200: SUCCESSFUL_UPLOAD</p>
-                            </div>
+                            <DoodleBadge className="w-full py-4 text-center bg-green-400 rotate-0">
+                                تم الإرسال بنجاح! جاري المراجعة 🚀
+                            </DoodleBadge>
                         )}
                         {submitStatus === 'error' && (
-                            <div className="p-8 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-4 border-red-600 font-black text-right border-dashed animate-fade-in">
-                                &gt; خطأ في الإرسال: يرجى التأكد من الرابط والمحاولة مرة أخرى.
-                                <p className="text-xs mt-2 opacity-70">STATUS_400: REQUEST_FAILURE</p>
-                            </div>
+                            <DoodleBadge className="w-full py-4 text-center bg-red-400 rotate-0">
+                                فشل الإرسال! تأكد من البيانات ❌
+                            </DoodleBadge>
                         )}
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full bg-[var(--foreground)] text-[var(--background)] py-8 font-black text-2xl hover:bg-[var(--background)] hover:text-[var(--foreground)] border-4 border-[var(--foreground)] transition-none shadow-[10px_10px_0_0_rgba(0,0,0,0.4)] active:translate-y-2 active:shadow-none disabled:opacity-50 rounded-none uppercase tracking-widest group"
-                        >
-                            {isSubmitting ? 'جاري_الرفع... (UPLOADING)' : '> تنفيذ_الإرسال (EXECUTE_ADDITION)'}
-                        </button>
+                        <DoodleButton type="submit" disabled={isSubmitting} className="w-full py-6 text-2xl" variant="primary">
+                            {isSubmitting ? 'جاري الرفع... ✏️' : 'أرسل الشعبة الآن! ✅'}
+                        </DoodleButton>
                     </form>
+                </DoodleCard>
+
+                {/* Important Note */}
+                <div className="mt-16 rotate-[1deg]">
+                    <DoodleCard className="bg-[#FF7A00]/10 border-dashed">
+                        <h3 className="text-xl font-black mb-4">تنبيه هام 🚨</h3>
+                        <p className="font-bold opacity-80 text-sm leading-relaxed">
+                            تأكد من أن الرابط يعمل بشكل صحيح، سيتم مراجعة الطلبات يدوياً قبل ظهورها في الدليل. شكراً لمساهمتك!
+                        </p>
+                    </DoodleCard>
                 </div>
 
-                {/* Footer Notes */}
-                <div className="mt-16 bg-[var(--background)] border-4 border-dashed border-[var(--foreground)] p-10 text-right shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
-                    <h3 className="font-black text-2xl mb-8 flex items-center justify-end gap-4 text-[var(--foreground)] uppercase">
-                        <span>ميثاق_الاستخدام</span>
-                        <span className="text-xs opacity-50">CODE_OF_CONDUCT_V1.0</span>
-                    </h3>
-                    <ul className="space-y-6 text-[var(--foreground)] font-bold text-sm">
-                        <li className="flex items-center justify-end gap-3">// يمنع منعاً باتاً نشر محتوى ترويجي أو إعلانات خارج الإطار الأكاديمي.</li>
-                        <li className="flex items-center justify-end gap-3">// يجب التأكد من صحة رقم الشعبة والمادة لتسهيل عملية البحث.</li>
-                        <li className="flex items-center justify-end gap-3">// يتم حذف الروابط المعطلة أو المجموعات المخالفة تلقائياً.</li>
-                    </ul>
-                </div>
             </div>
-
-            <FloatingContact />
         </div>
     );
 }

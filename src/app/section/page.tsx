@@ -3,8 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import FloatingContact from '@/components/FloatingContact';
+import {
+    DoodleCard,
+    DoodleButton,
+    DoodleBadge,
+    VotePill
+} from '@/components/DoodleComponents';
 
 interface Group {
     id: string;
@@ -14,6 +18,8 @@ interface Group {
     sectionNumber: string;
     groupLink: string;
     groupName: string;
+    description?: string;
+    votes: number;
 }
 
 export default function SectionPage() {
@@ -49,125 +55,120 @@ export default function SectionPage() {
         }
     };
 
+    const handleVote = async (groupId: string, type: 'up' | 'down') => {
+        // Logic for voting (existing logic placeholder)
+        console.log(`Voting ${type} for ${groupId}`);
+        // Refresh groups or update state locally
+    };
+
     return (
-        <div className="bg-[var(--background)] min-h-screen pt-32 pb-20 relative overflow-hidden">
-            <div className="fixed inset-0 dither-bg pointer-events-none opacity-5 z-0"></div>
-            <Navbar />
+        <div className="pt-32 pb-20 px-4">
+            <div className="max-w-5xl mx-auto">
 
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                {/* Search Parameter Context Box */}
-                <div className="bg-[var(--foreground)] text-[var(--background)] p-10 mb-16 shadow-[12px_12px_0_0_rgba(0,0,0,0.3)] border-4 border-[var(--background)] outline outline-8 outline-[var(--foreground)] relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-[var(--background)] opacity-20 bg-[linear-gradient(90deg,transparent_50%,var(--background)_50%)] bg-[length:10px_100%]"></div>
-
-                    <h1 className="text-4xl md:text-6xl font-black mb-10 border-b-8 border-double border-[var(--background)] pb-6 tracking-tighter uppercase relative">
-                        نتائج_البحث_🔍
-                        <span className="absolute bottom-0 right-0 text-xs font-black bg-[var(--background)] text-[var(--foreground)] px-3 py-1 uppercase">QUERY_SUCCESS_200</span>
+                {/* Search Header Info */}
+                <div className="bg-[#FFD400] doodle-border doodle-shadow p-8 mb-16 rotate-[0.5deg]">
+                    <h1 className="text-4xl font-black mb-6 underline decoration-black/20 decoration-8 underline-offset-8">
+                        نتائج البحث 🔍
                     </h1>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-right font-mono">
-                        <div className="space-y-2 border-r-4 border-[var(--background)]/20 pr-6">
-                            <p className="opacity-60 text-xs font-black uppercase tracking-widest">&gt; الكلية (COLLEGE)</p>
-                            <p className="text-2xl font-black truncate">{college || 'NULL'}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-bold">
+                        <div className="rotate-[1deg]">
+                            <span className="text-xs uppercase opacity-50 block">الكلية</span>
+                            <span className="text-xl">{college}</span>
                         </div>
-                        <div className="space-y-2 border-r-4 border-[var(--background)]/20 pr-6">
-                            <p className="opacity-60 text-xs font-black uppercase tracking-widest">&gt; المادة (SUBJECT)</p>
-                            <p className="text-2xl font-black truncate">{subject || 'NULL'}</p>
+                        <div className="-rotate-[1deg]">
+                            <span className="text-xs uppercase opacity-50 block">المادة</span>
+                            <span className="text-xl">{subject}</span>
                         </div>
-                        <div className="space-y-2">
-                            <p className="opacity-60 text-xs font-black uppercase tracking-widest">&gt; الشعبة (SECTION)</p>
-                            <p className="text-5xl font-black leading-none">{section || 'NULL'}</p>
+                        <div className="rotate-[0.5deg]">
+                            <span className="text-xs uppercase opacity-50 block">الشعبة</span>
+                            <span className="text-3xl font-black">{section}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* State Management */}
+                {/* Content */}
                 {isLoading ? (
-                    <div className="text-center py-40 border-8 border-dotted border-[var(--foreground)] bg-[var(--background)]">
-                        <div className="text-3xl font-black animate-pulse uppercase tracking-[0.2em]">
-                            جاري_استخراج_النتائج_
-                            <span className="block text-sm opacity-50 mt-4">[FETCHING_FROM_DATABASE_V1]</span>
-                        </div>
+                    <div className="text-center py-32 font-black text-3xl animate-bounce">
+                        جاري البحث بين الدفاتر... 📖✏️
                     </div>
                 ) : groups.length === 0 ? (
-                    <div className="text-center py-32 bg-[var(--background)] border-8 border-dashed border-[var(--foreground)] px-8">
-                        <div className="text-9xl mb-10 font-black text-[var(--foreground)] opacity-10">[!]</div>
-                        <h2 className="text-4xl font-black text-[var(--foreground)] mb-6 uppercase tracking-tighter">404_السجل_غير_موجود</h2>
-                        <p className="text-[var(--foreground)] mb-12 max-w-lg mx-auto font-bold text-lg leading-relaxed border-y-2 border-[var(--foreground)] py-6">
-                            // النظام لم يعثر على روابط مطابقة لهذه الشعبة.<br />
-                            // هل ترغب في المساهمة وإضافة رابط؟
-                        </p>
-                        <div className="flex flex-col md:flex-row gap-6 justify-center">
-                            <Link
-                                href="/submit"
-                                className="bg-[var(--foreground)] text-[var(--background)] px-12 py-6 font-black text-2xl hover:bg-[var(--background)] hover:text-[var(--foreground)] border-4 border-[var(--foreground)] transition-none shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] active:translate-y-2 active:shadow-none uppercase tracking-widest"
-                            >
-                                &gt; إضافة_مجموعة_الآن
+                    <DoodleCard className="text-center py-20 border-dashed" rotate="-rotate-[1deg]">
+                        <div className="text-6xl mb-6">🤷‍♂️</div>
+                        <h2 className="text-3xl font-black mb-4 text-red-600">للاسف ما لقيت شيء!</h2>
+                        <p className="font-bold opacity-70 mb-10">تبغى تكون أول واحد يضيف هذي الشعبة؟</p>
+                        <div className="flex flex-col md:flex-row gap-4 justify-center">
+                            <Link href="/submit">
+                                <DoodleButton variant="primary">إضافة المجموعة الآن ✍️</DoodleButton>
                             </Link>
-                            <Link
-                                href="/"
-                                className="bg-[var(--background)] text-[var(--foreground)] border-4 border-[var(--foreground)] px-12 py-6 font-black text-2xl hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-none shadow-[8px_8px_0_0_var(--foreground)] active:translate-y-2 active:shadow-none uppercase tracking-widest"
-                            >
-                                [ عودة_للرئيسية ]
+                            <Link href="/">
+                                <DoodleButton variant="outline">رجوع للرئيسية</DoodleButton>
                             </Link>
                         </div>
-                    </div>
+                    </DoodleCard>
                 ) : (
-                    <div className="space-y-12 animate-fade-in">
-                        <div className="flex items-center justify-between border-b-4 border-[var(--foreground)] pb-4 px-2">
-                            <p className="text-right text-[var(--foreground)] font-black text-sm uppercase tracking-widest">
-                                &gt; التطابقات_الموجودة: {groups.length} (ENTRIES_FOUND)
-                            </p>
-                            <div className="flex gap-2">
-                                <span className="w-3 h-3 bg-[var(--foreground)]"></span>
-                                <span className="w-3 h-3 bg-[var(--foreground)] opacity-50"></span>
-                            </div>
+                    <div className="space-y-10">
+                        <div className="flex justify-between items-center rotate-[1deg]">
+                            <DoodleBadge className="text-lg px-4 py-2">وجدنا {groups.length} روابط 🚀</DoodleBadge>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-10">
-                            {groups.map((group) => (
-                                <div
-                                    key={group.id}
-                                    className="pixel-card bg-[var(--background)] border-4 border-[var(--foreground)] p-10 hover:shadow-[16px_16px_0_0_var(--foreground)] transition-none shadow-[10px_10px_0_0_rgba(0,0,0,0.2)] relative group overflow-hidden"
-                                >
-                                    <div className="absolute top-0 right-0 w-2 h-full bg-[var(--foreground)] opacity-10"></div>
-
-                                    <div className="flex flex-col md:flex-row justify-between items-center gap-10 text-right">
-                                        <div className="flex-1 space-y-6">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <span className={`inline-block px-4 py-1 font-black text-xs uppercase border-2 border-[var(--foreground)] ${group.platform === 'telegram' ? 'bg-[var(--foreground)] text-[var(--background)]' : 'bg-[var(--background)] text-[var(--foreground)]'}`}>
-                                                    {group.platform === 'telegram' ? 'PROTO: T_GRAM' : 'PROTO: W_APP'}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-4xl font-black text-[var(--foreground)] tracking-tight uppercase leading-none">
-                                                {group.groupName}
-                                            </h3>
-                                            <p className="text-xs font-black opacity-30 mt-2 uppercase tracking-widest">NODE_ID: {group.id.substring(0, 8).toUpperCase()}</p>
+                        {groups.map((group, i) => (
+                            <DoodleCard
+                                key={group.id}
+                                rotate={i % 2 === 0 ? "rotate-[0.5deg]" : "-rotate-[0.5deg]"}
+                                className="group"
+                            >
+                                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                                    <div className="flex-1 text-right space-y-4">
+                                        <div className="flex gap-2">
+                                            <DoodleBadge className={group.platform === 'telegram' ? 'bg-[#FF7A00]/20' : 'bg-green-400/20'}>
+                                                {group.platform === 'telegram' ? 'تيليجرام ✈️' : 'واتساب 💬'}
+                                            </DoodleBadge>
+                                            {group.sectionNumber === 'عام' ? (
+                                                <DoodleBadge className="bg-blue-400/20 border-blue-400">قروب المادة (العام) 📚</DoodleBadge>
+                                            ) : (
+                                                <DoodleBadge className="bg-[#FFD400]/20">قروب الشعبة #{group.sectionNumber} 🔢</DoodleBadge>
+                                            )}
                                         </div>
+                                        <h3 className="text-3xl font-black group-hover:underline transition-all">
+                                            {group.groupName}
+                                        </h3>
+                                        {group.description && (
+                                            <p className="font-bold text-sm bg-black/5 p-3 doodle-border-sm border-dashed">
+                                                {group.description}
+                                            </p>
+                                        )}
+                                        <p className="font-bold opacity-40 text-xs">معرف المجموعة: {group.id.slice(0, 8)}</p>
+                                    </div>
 
+                                    <div className="flex flex-col md:flex-row items-center gap-6">
+                                        <VotePill
+                                            count={group.votes || 0}
+                                            onUpvote={() => handleVote(group.id, 'up')}
+                                            onDownvote={() => handleVote(group.id, 'down')}
+                                        />
                                         <a
                                             href={group.groupLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-full md:w-auto bg-[var(--foreground)] text-[var(--background)] px-12 py-6 font-black text-2xl border-2 border-[var(--foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)] transition-none shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] active:translate-y-2 active:shadow-none text-center uppercase tracking-[0.2em]"
                                         >
-                                            دخول_المجموعة &gt;&gt;
+                                            <DoodleButton className="px-10 py-4 text-xl" variant="primary">
+                                                دخول المجموعة 🔗
+                                            </DoodleButton>
                                         </a>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            </DoodleCard>
+                        ))}
 
-                        <div className="text-center pt-24 border-t-8 border-double border-[var(--foreground)] mt-20">
-                            <p className="text-[var(--foreground)] mb-6 font-black uppercase text-sm tracking-[0.5em] opacity-40">// EOF: END_OF_DATA_STREAM //</p>
-                            <Link href="/submit" className="inline-block bg-[var(--foreground)] text-[var(--background)] px-10 py-5 font-black text-lg hover:shadow-[8px_8px_0_0_var(--foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)] border-4 border-[var(--foreground)] transition-none uppercase">
-                                [ المساهمة_ببيانات_إضافية ]
+                        <div className="pt-20 text-center">
+                            <p className="font-black opacity-30 mb-8">— نهاية القائمة 📓 —</p>
+                            <Link href="/submit">
+                                <DoodleButton variant="outline" className="text-sm">المساهمة برابط إضافي</DoodleButton>
                             </Link>
                         </div>
                     </div>
                 )}
             </div>
-
-            <FloatingContact />
         </div>
     );
 }

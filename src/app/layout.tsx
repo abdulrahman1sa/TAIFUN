@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Changa } from "next/font/google"; // Pixel-style Arabic font
+import { Tajawal } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FloatingContact from "@/components/FloatingContact";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
-const changa = Changa({
-  variable: "--font-changa",
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
   subsets: ["arabic"],
-  weight: ["200", "300", "400", "500", "600", "700", "800"],
+  weight: ["200", "300", "400", "500", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -18,35 +16,19 @@ export const metadata: Metadata = {
   keywords: "دليل الشعب, جامعة, مجموعات واتس, مجموعات تليجرام, دراسة, شعب جامعية",
 };
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'lottie-player': any;
-    }
-  }
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${changa.variable}`}>
-      <head>
-        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" async></script>
-      </head>
-      <body
-        className="antialiased min-h-screen flex flex-col"
-      >
-        <ThemeProvider>
-          <Navbar />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <FloatingContact />
-          <Footer />
-        </ThemeProvider>
+    <html lang="ar" dir="rtl" className={`${tajawal.variable}`}>
+      <body className={`${tajawal.className} antialiased min-h-screen flex flex-col`}>
+        <Navbar />
+        <main className="flex-grow">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
